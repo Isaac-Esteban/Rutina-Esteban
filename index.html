@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rutina diaria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #EAF1F3;
+    --paper-raised: #FFFFFF;
+    --ink: #17313B;
+    --ink-soft: #5B7480;
+    --ring: #BFD2D8;
+    --line: #D7E4E8;
+    --done: #1E8F72;
+    --done-bg: #DCF1E9;
+    --missed: #4A6FA1;
+    --missed-bg: #DDE7F2;
+    --na: #7C8E94;
+    --na-bg: #E5ECEE;
+    --warn: #B8862E;
+    --warn-bg: #F1E6CE;
+    --pending-bg: #FFFFFF;
+    --accent: #1B4F72;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(23,49,59,0.06), 0 6px 16px rgba(23,49,59,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    padding: 20px 12px 48px;
+  }
+  .app{
+    width:100%;
+    max-width: 460px;
+  }
+  h1,h2,.display{
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:4px;
+  }
+  .title-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:1;
+    min-width:0;
+  }
+  #kidname{
+    font-size:1.5rem;
+    color:var(--ink);
+    border:none;
+    background:transparent;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    padding:2px 0;
+    width:100%;
+    outline:none;
+  }
+  #kidname:focus{ border-bottom: 1px solid var(--accent); }
+  .subtitle{
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    margin: 0 0 18px;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+    background: var(--line);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 18px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding: 9px 0;
+    border-radius: 7px;
+    border:none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family:'Inter';
+    font-weight:600;
+    font-size:0.9rem;
+    cursor:pointer;
+  }
+  .tab.active{
+    background: var(--paper-raised);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .tab:focus-visible, button:focus-visible, [contenteditable]:focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .card{
+    background: var(--paper-raised);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    position: relative;
+    padding: 18px 18px 18px 30px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .rings{
+    position:absolute;
+    left:10px; top:0; bottom:0;
+    width:10px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-evenly;
+    align-items:center;
+  }
+  .rings span{
+    width:9px;height:9px;border-radius:50%;
+    background: var(--paper);
+    border:1.5px solid var(--ring);
+  }
+
+  .day-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 14px;
+  }
+  .day-nav button{
+    background:none;border:none;cursor:pointer;
+    color: var(--ink);
+    font-size:1.1rem;
+    padding:6px 10px;
+    border-radius:8px;
+  }
+  .day-nav button:hover{ background: var(--line); }
+  .day-label{
+    text-align:center;
+    flex:1;
+  }
+  .day-label .date{
+    font-family:'Fraunces',serif;
+    font-size:1.05rem;
+    font-weight:600;
+    text-transform:capitalize;
+  }
+  .day-label .jump{
+    font-size:0.72rem;
+    color: var(--accent);
+    cursor:pointer;
+    background:none;border:none;
+    text-decoration:underline;
+    padding:0;
+    font-family:'Inter';
+  }
+
+  .progress-wrap{
+    margin-bottom: 16px;
+  }
+  .progress-bar{
+    height:8px;
+    border-radius:4px;
+    background: var(--line);
+    overflow:hidden;
+  }
+  .progress-bar > div{
+    height:100%;
+    background: var(--done);
+    transition: width 0.25s ease;
+  }
+  .progress-text{
+    font-size:0.78rem;
+    color: var(--ink-soft);
+    margin-top:6px;
+  }
+
+  .section-label{
+    font-size:0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin: 18px 0 8px;
+    font-weight:600;
+  }
+  .section-label:first-of-type{ margin-top:2px; }
+
+  .item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .item:last-child{ border-bottom:none; }
+  .item .num{
+    width:18px;
+    text-align:right;
+    color: var(--ink-soft);
+    font-size:0.78rem;
+    flex-shrink:0;
+  }
+  .item .label{
+    flex:1;
+    font-size:0.92rem;
+    line-height:1.3;
+  }
+  .item.state-missed .label{ color: var(--ink-soft); }
+  .item.state-na .label{ color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--na); }
+
+  .state-btn{
+    flex-shrink:0;
+    width:38px;height:38px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background: var(--pending-bg);
+    cursor:pointer;
+    font-size:1.05rem;
+    display:flex;align-items:center;justify-content:center;
+    color: var(--ink-soft);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .state-btn.done{ background: var(--done-bg); border-color: var(--done); color: var(--done); }
+  .state-btn.missed{ background: var(--missed-bg); border-color: var(--missed); color: var(--missed); }
+  .state-btn.na{ background: var(--na-bg); border-color: var(--na); color: var(--na); }
+
+  .legend{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    font-size:0.72rem;
+    color: var(--ink-soft);
+    margin-top:14px;
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .swatch{ width:11px;height:11px;border-radius:3px; display:inline-block; }
+
+  /* Calendar */
+  .cal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .cal-head .month{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    text-transform:capitalize;
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap:6px;
+  }
+  .cal-dow{
+    text-align:center;
+    font-size:0.68rem;
+    color: var(--ink-soft);
+    font-weight:600;
+  }
+  .cal-day{
+    aspect-ratio:1;
+    border-radius:8px;
+    border:none;
+    background: var(--pending-bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:0.82rem;
+    color: var(--ink);
+    cursor:pointer;
+    position:relative;
+  }
+  .cal-day.empty{ visibility:hidden; cursor:default; }
+  .cal-day.future{ color: var(--ink-soft); opacity:0.5; cursor:default; }
+  .cal-day.today{ box-shadow: inset 0 0 0 2px var(--accent); }
+  .cal-day.lvl-high{ background: var(--done-bg); color: var(--done); font-weight:700; }
+  .cal-day.lvl-mid{ background: var(--warn-bg); color: var(--warn); font-weight:700; }
+  .cal-day.lvl-low{ background: var(--missed-bg); color: var(--missed); font-weight:700; }
+
+  .streak-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .stat{
+    flex:1;
+    background: var(--paper-raised);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 12px 14px;
+    text-align:center;
+  }
+  .stat .num{
+    font-family:'Fraunces',serif;
+    font-size:1.5rem;
+    font-weight:700;
+    display:block;
+  }
+  .stat .lbl{
+    font-size:0.72rem;
+    color: var(--ink-soft);
+  }
+
+  /* Stats */
+  .rank-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding: 8px 0;
+  }
+  .rank-row .rank-label{
+    flex: 0 0 46%;
+    font-size:0.85rem;
+    line-height:1.25;
+  }
+  .rank-row .rank-bar-wrap{
+    flex:1;
+    height:8px;
+    border-radius:4px;
+    background: var(--line);
+    overflow:hidden;
+  }
+  .rank-row .rank-bar{
+    height:100%;
+    border-radius:4px;
+  }
+  .rank-row .rank-bar.high{ background: var(--done); }
+  .rank-row .rank-bar.mid{ background: var(--warn); }
+  .rank-row .rank-bar.low{ background: var(--missed); }
+  .rank-row .rank-pct{
+    flex: 0 0 38px;
+    text-align:right;
+    font-size:0.78rem;
+    color: var(--ink-soft);
+  }
+  .trend-wrap{
+    display:flex;
+    align-items:flex-end;
+    gap:8px;
+    height:110px;
+    padding: 4px 2px 0;
+  }
+  .trend-col{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+    height:100%;
+    gap:6px;
+  }
+  .trend-bar{
+    width:100%;
+    border-radius:4px 4px 0 0;
+    background: var(--accent);
+    min-height:3px;
+  }
+  .trend-label{
+    font-size:0.62rem;
+    color: var(--ink-soft);
+    text-align:center;
+  }
+
+  .empty-note{
+    text-align:center;
+    color: var(--ink-soft);
+    font-size:0.85rem;
+    padding: 18px 8px;
+  }
+
+  .loading{
+    text-align:center;
+    color: var(--ink-soft);
+    padding: 40px 0;
+    font-size:0.9rem;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .progress-bar > div{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="title-row">
+      <input id="kidname" value="Nuestro hijo" aria-label="Nombre del niño" maxlength="30">
+    </div>
+  </div>
+  <p class="subtitle">Rutina diaria — registro compartido</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tab-today" role="tab" aria-selected="true">Hoy</button>
+    <button class="tab" id="tab-history" role="tab" aria-selected="false">Historial</button>
+    <button class="tab" id="tab-stats" role="tab" aria-selected="false">Estadísticas</button>
+  </div>
+
+  <div id="view-today"></div>
+  <div id="view-history" style="display:none;"></div>
+  <div id="view-stats" style="display:none;"></div>
+</div>
+
+<script>
+const TASKS = [
+  { id: 1, group: 'deberes', label: 'Guardo la mochila en su lugar' },
+  { id: 2, group: 'deberes', label: 'Me ducho' },
+  { id: 3, group: 'deberes', label: 'Dejo la ropa sucia en el canasto' },
+  { id: 4, group: 'deberes', label: 'Descanso 15 minutos' },
+  { id: 5, group: 'deberes', label: 'Hago las tareas pendientes del colegio' },
+  { id: 6, group: 'deberes', label: 'Actividades de alfabeto' },
+  { id: 7, group: 'deberes', label: 'Leo 15 minutos' },
+  { id: 8, group: 'deberes', label: 'Estudio inglés 10 minutos' },
+  { id: 9, group: 'deberes', label: 'Estudio números y tablas de multiplicar' },
+  { id: 10, group: 'deberes', label: 'Dejo la mochila lista para mañana' },
+  { id: 11, group: 'deberes', label: 'Tiempo libre' },
+  { id: 12, group: 'deberes', label: 'Ceno con mi familia' },
+  { id: 13, group: 'dormir', label: 'Tomo pastilla de alergia + suplementos' },
+  { id: 14, group: 'dormir', label: 'Preparo la ropa del colegio para mañana' },
+  { id: 15, group: 'dormir', label: 'Aplico mis puff (remedios)' },
+  { id: 16, group: 'dormir', label: 'Me lavo los dientes' },
+  { id: 17, group: 'dormir', label: 'Oro' },
+  { id: 18, group: 'dormir', label: 'Hora de dormir' },
+];
+
+const STATES = ['pending', 'done', 'missed', 'na'];
+const ICONS = { pending: '', done: '✓', missed: '✕', na: '–' };
+
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+function fmtDate(d){
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function todayStr(){ return fmtDate(new Date()); }
+function parseDate(str){
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+const DOW = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+let currentDate = todayStr();
+let currentEntry = {};
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+
+async function safeGet(key, shared){
+  try{
+    const res = await window.storage.get(key, shared);
+    return res ? res.value : null;
+  }catch(e){ return null; }
+}
+async function safeSet(key, value, shared){
+  try{
+    await window.storage.set(key, value, shared);
+    return true;
+  }catch(e){ return false; }
+}
+
+async function loadKidName(){
+  const val = await safeGet('kidname', true);
+  if(val) $('#kidname').value = val;
+}
+let nameTimer;
+$('#kidname').addEventListener('input', (e)=>{
+  clearTimeout(nameTimer);
+  nameTimer = setTimeout(()=>{ safeSet('kidname', e.target.value.trim() || 'Nuestro hijo', true); }, 500);
+});
+
+async function loadEntry(dateStr){
+  const raw = await safeGet('entry:'+dateStr, true);
+  if(!raw) return {};
+  try{ return JSON.parse(raw); }catch(e){ return {}; }
+}
+async function saveEntry(dateStr, entry){
+  await safeSet('entry:'+dateStr, JSON.stringify(entry), true);
+  allEntriesCache = null;
+}
+
+function computeStats(entry){
+  let done=0, missed=0, na=0, pending=0;
+  TASKS.forEach(t=>{
+    const s = entry[t.id] || 'pending';
+    if(s==='done') done++;
+    else if(s==='missed') missed++;
+    else if(s==='na') na++;
+    else pending++;
+  });
+  const denom = done+missed;
+  const pct = denom>0 ? Math.round((done/denom)*100) : null;
+  return { done, missed, na, pending, pct, denom };
+}
+
+function renderToday(){
+  const el = $('#view-today');
+  const d = parseDate(currentDate);
+  const isToday = currentDate === todayStr();
+  const dateLabel = `${DOW[d.getDay()]}, ${d.getDate()} de ${MONTHS[d.getMonth()]}`;
+
+  const stats = computeStats(currentEntry);
+  const pctDisplay = stats.pct === null ? '—' : stats.pct + '%';
+  const barWidth = stats.pct === null ? 0 : stats.pct;
+
+  const renderGroup = (group, groupLabel) => {
+    const items = TASKS.filter(t=>t.group===group).map(t=>{
+      const s = currentEntry[t.id] || 'pending';
+      return `
+        <div class="item state-${s}">
+          <span class="num">${t.id}</span>
+          <span class="label">${t.label}</span>
+          <button class="state-btn ${s!=='pending'?s:''}" data-id="${t.id}" aria-label="${t.label}: ${s}">${ICONS[s]}</button>
+        </div>`;
+    }).join('');
+    return `<div class="section-label">${groupLabel}</div>${items}`;
+  };
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="rings">${'<span></span>'.repeat(7)}</div>
+      <div class="day-nav">
+        <button id="prev-day" aria-label="Día anterior">←</button>
+        <div class="day-label">
+          <div class="date">${dateLabel}</div>
+          ${!isToday ? '<button class="jump" id="jump-today">volver a hoy</button>' : ''}
+        </div>
+        <button id="next-day" aria-label="Día siguiente">→</button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div style="width:${barWidth}%"></div></div>
+        <div class="progress-text">${stats.done} de ${stats.denom || 0} cumplidas${stats.pct!==null ? ' — '+pctDisplay : ''}${stats.pending ? ` · ${stats.pending} sin marcar` : ''}</div>
+      </div>
+      ${renderGroup('deberes', 'Rutina de deberes')}
+      ${renderGroup('dormir', 'Rutina antes de dormir')}
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--done-bg);border:1px solid var(--done)"></span>Cumplió</span>
+        <span><span class="swatch" style="background:var(--missed-bg);border:1px solid var(--missed)"></span>No cumplió</span>
+        <span><span class="swatch" style="background:var(--na-bg);border:1px solid var(--na)"></span>No aplica hoy</span>
+      </div>
+    </div>
+  `;
+
+  $$('.state-btn', el).forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = Number(btn.dataset.id);
+      const cur = currentEntry[id] || 'pending';
+      const next = STATES[(STATES.indexOf(cur)+1) % STATES.length];
+      if(next === 'pending') delete currentEntry[id];
+      else currentEntry[id] = next;
+      await saveEntry(currentDate, currentEntry);
+      renderToday();
+    });
+  });
+
+  $('#prev-day', el).addEventListener('click', ()=> changeDay(-1));
+  $('#next-day', el).addEventListener('click', ()=> changeDay(1));
+  const jump = $('#jump-today', el);
+  if(jump) jump.addEventListener('click', ()=> goToDate(todayStr()));
+}
+
+async function goToDate(dateStr){
+  currentDate = dateStr;
+  currentEntry = await loadEntry(dateStr);
+  renderToday();
+}
+async function changeDay(delta){
+  const d = parseDate(currentDate);
+  d.setDate(d.getDate()+delta);
+  const next = fmtDate(d);
+  if(next > todayStr()) return;
+  await goToDate(next);
+}
+
+let allEntriesCache = null;
+async function loadAllEntries(force){
+  if(allEntriesCache && !force) return allEntriesCache;
+  let keysRes;
+  try{
+    keysRes = await window.storage.list('entry:', true);
+  }catch(e){ keysRes = null; }
+  const keys = keysRes && keysRes.keys ? keysRes.keys : [];
+  const entries = {};
+  for(const k of keys){
+    const dateStr = k.replace('entry:', '');
+    const raw = await safeGet(k, true);
+    if(raw){ try{ entries[dateStr] = JSON.parse(raw); }catch(e){} }
+  }
+  allEntriesCache = entries;
+  return entries;
+}
+
+async function renderHistory(){
+  const el = $('#view-history');
+  el.innerHTML = `<div class="loading">Cargando historial…</div>`;
+
+  const entries = await loadAllEntries();
+
+  // streak: consecutive days up to today with pct >= 70
+  let streak = 0;
+  let cursor = new Date();
+  while(true){
+    const ds = fmtDate(cursor);
+    const e = entries[ds];
+    if(!e){ break; }
+    const st = computeStats(e);
+    if(st.denom===0 || st.pct < 70) break;
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+
+  // week average (last 7 days including today)
+  let weekDone=0, weekTotal=0;
+  for(let i=0;i<7;i++){
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    const e = entries[fmtDate(d)];
+    if(e){ const st = computeStats(e); weekDone+=st.done; weekTotal+=st.denom; }
+  }
+  const weekPct = weekTotal>0 ? Math.round((weekDone/weekTotal)*100) : null;
+
+  const firstOfMonth = new Date(calYear, calMonth, 1);
+  const startOffset = firstOfMonth.getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const monthLabel = `${MONTHS[calMonth]} ${calYear}`;
+
+  let cells = '';
+  for(let i=0;i<startOffset;i++) cells += `<div class="cal-day empty"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const d = new Date(calYear, calMonth, day);
+    const ds = fmtDate(d);
+    const isFuture = ds > todayStr();
+    const isToday = ds === todayStr();
+    let cls = 'cal-day';
+    if(isFuture) cls += ' future';
+    if(isToday) cls += ' today';
+    const e = entries[ds];
+    if(e && !isFuture){
+      const st = computeStats(e);
+      if(st.denom>0){
+        if(st.pct>=80) cls += ' lvl-high';
+        else if(st.pct>=50) cls += ' lvl-mid';
+        else cls += ' lvl-low';
+      }
+    }
+    cells += `<button class="${cls}" data-date="${ds}" ${isFuture?'disabled':''}>${day}</button>`;
+  }
+
+  el.innerHTML = `
+    <div class="streak-row">
+      <div class="stat"><span class="num">${streak}</span><span class="lbl">días seguidos ≥70%</span></div>
+      <div class="stat"><span class="num">${weekPct===null?'—':weekPct+'%'}</span><span class="lbl">promedio últimos 7 días</span></div>
+    </div>
+    <div class="card">
+      <div class="rings">${'<span></span>'.repeat(7)}</div>
+      <div class="cal-head">
+        <button id="prev-month" aria-label="Mes anterior">←</button>
+        <div class="month">${monthLabel}</div>
+        <button id="next-month" aria-label="Mes siguiente">→</button>
+      </div>
+      <div class="cal-grid">
+        ${['D','L','M','M','J','V','S'].map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+        ${cells}
+      </div>
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--done-bg)"></span>80%+</span>
+        <span><span class="swatch" style="background:var(--warn-bg)"></span>50–79%</span>
+        <span><span class="swatch" style="background:var(--missed-bg)"></span>Menos de 50%</span>
+      </div>
+    </div>
+  `;
+
+  $('#prev-month', el).addEventListener('click', ()=>{
+    calMonth--; if(calMonth<0){calMonth=11; calYear--;}
+    renderHistory();
+  });
+  $('#next-month', el).addEventListener('click', ()=>{
+    const next = new Date(calYear, calMonth+1, 1);
+    if(next > new Date()) return;
+    calMonth++; if(calMonth>11){calMonth=0; calYear++;}
+    renderHistory();
+  });
+  $$('.cal-day[data-date]', el).forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      await goToDate(btn.dataset.date);
+      switchTab('today');
+    });
+  });
+}
+
+function isoWeekLabel(d){
+  // Monday-start week label like "8 sep"
+  const day = new Date(d);
+  const dow = (day.getDay()+6)%7; // 0=Mon
+  day.setDate(day.getDate()-dow);
+  return day;
+}
+
+async function renderStats(){
+  const el = $('#view-stats');
+  el.innerHTML = `<div class="loading">Calculando estadísticas…</div>`;
+
+  const entries = await loadAllEntries(true);
+  const dates = Object.keys(entries).sort();
+
+  if(dates.length === 0){
+    el.innerHTML = `<div class="card"><p class="empty-note">Todavía no hay días registrados. Cuando marquen algunas tareas en "Hoy", acá van a ver las estadísticas.</p></div>`;
+    return;
+  }
+
+  // Per-task totals across all history
+  const totals = {};
+  TASKS.forEach(t=> totals[t.id] = { done:0, missed:0 });
+  dates.forEach(ds=>{
+    const e = entries[ds];
+    TASKS.forEach(t=>{
+      const s = e[t.id];
+      if(s==='done') totals[t.id].done++;
+      else if(s==='missed') totals[t.id].missed++;
+    });
+  });
+  const ranked = TASKS.map(t=>{
+    const { done, missed } = totals[t.id];
+    const denom = done+missed;
+    const pct = denom>0 ? Math.round((done/denom)*100) : null;
+    return { ...t, done, missed, denom, pct };
+  }).filter(t=>t.denom>0).sort((a,b)=> a.pct-b.pct);
+
+  const rankRows = ranked.map(t=>{
+    const lvl = t.pct>=80 ? 'high' : t.pct>=50 ? 'mid' : 'low';
+    return `
+      <div class="rank-row">
+        <div class="rank-label">${t.label}</div>
+        <div class="rank-bar-wrap"><div class="rank-bar ${lvl}" style="width:${t.pct}%"></div></div>
+        <div class="rank-pct">${t.pct}%</div>
+      </div>`;
+  }).join('');
+
+  // Weekly trend: last 8 Monday-start weeks
+  const weeks = [];
+  let wCursor = isoWeekLabel(new Date());
+  for(let i=0;i<8;i++){
+    const start = new Date(wCursor);
+    start.setDate(start.getDate()-7*i);
+    weeks.unshift(start);
+  }
+  const weekBars = weeks.map(start=>{
+    let done=0, missed=0;
+    for(let i=0;i<7;i++){
+      const d = new Date(start);
+      d.setDate(d.getDate()+i);
+      if(fmtDate(d) > todayStr()) continue;
+      const e = entries[fmtDate(d)];
+      if(e){
+        TASKS.forEach(t=>{
+          if(e[t.id]==='done') done++;
+          else if(e[t.id]==='missed') missed++;
+        });
+      }
+    }
+    const denom = done+missed;
+    const pct = denom>0 ? Math.round((done/denom)*100) : 0;
+    const label = `${start.getDate()}/${start.getMonth()+1}`;
+    return { pct, label, hasData: denom>0 };
+  });
+
+  const trendCols = weekBars.map(w=>`
+    <div class="trend-col">
+      <div class="trend-bar" style="height:${w.hasData ? Math.max(w.pct,4) : 0}%; opacity:${w.hasData?1:0.25}"></div>
+      <div class="trend-label">${w.label}</div>
+    </div>`).join('');
+
+  // Overall
+  let totalDone=0, totalMissed=0;
+  dates.forEach(ds=>{
+    const st = computeStats(entries[ds]);
+    totalDone += st.done; totalMissed += st.missed;
+  });
+  const overallPct = (totalDone+totalMissed)>0 ? Math.round((totalDone/(totalDone+totalMissed))*100) : null;
+
+  el.innerHTML = `
+    <div class="streak-row">
+      <div class="stat"><span class="num">${dates.length}</span><span class="lbl">días registrados</span></div>
+      <div class="stat"><span class="num">${overallPct===null?'—':overallPct+'%'}</span><span class="lbl">cumplimiento general</span></div>
+    </div>
+    <div class="card">
+      <div class="rings">${'<span></span>'.repeat(7)}</div>
+      <div class="section-label" style="margin-top:0">Tendencia semanal</div>
+      <div class="trend-wrap">${trendCols}</div>
+    </div>
+    <div class="card">
+      <div class="rings">${'<span></span>'.repeat(7)}</div>
+      <div class="section-label" style="margin-top:0">Tareas de menor a mayor cumplimiento</div>
+      ${rankRows || '<p class="empty-note">Aún no hay suficientes datos por tarea.</p>'}
+    </div>
+  `;
+}
+
+function switchTab(name){
+  $('#tab-today').classList.toggle('active', name==='today');
+  $('#tab-history').classList.toggle('active', name==='history');
+  $('#tab-stats').classList.toggle('active', name==='stats');
+  $('#tab-today').setAttribute('aria-selected', name==='today');
+  $('#tab-history').setAttribute('aria-selected', name==='history');
+  $('#tab-stats').setAttribute('aria-selected', name==='stats');
+  $('#view-today').style.display = name==='today' ? 'block' : 'none';
+  $('#view-history').style.display = name==='history' ? 'block' : 'none';
+  $('#view-stats').style.display = name==='stats' ? 'block' : 'none';
+  if(name==='history') renderHistory();
+  if(name==='stats') renderStats();
+}
+
+$('#tab-today').addEventListener('click', ()=> switchTab('today'));
+$('#tab-history').addEventListener('click', ()=> switchTab('history'));
+$('#tab-stats').addEventListener('click', ()=> switchTab('stats'));
+
+(async function init(){
+  $('#view-today').innerHTML = `<div class="loading">Cargando…</div>`;
+  await loadKidName();
+  currentEntry = await loadEntry(currentDate);
+  renderToday();
+})();
+</script>
+</body>
+</html>
